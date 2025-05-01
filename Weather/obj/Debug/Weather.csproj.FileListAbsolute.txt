@@ -11,3 +11,16 @@ C:\Users\User\Desktop\Programm\NET_Framework\Weather\Weather\obj\Debug\Weather.c
 C:\Users\User\Desktop\Programm\NET_Framework\Weather\Weather\obj\Debug\Weather.csproj.Up2Date
 C:\Users\User\Desktop\Programm\NET_Framework\Weather\Weather\obj\Debug\Weather.exe
 C:\Users\User\Desktop\Programm\NET_Framework\Weather\Weather\obj\Debug\Weather.pdb
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\bin\Debug\Weather.exe.config
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\bin\Debug\Weather.exe
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\bin\Debug\Weather.pdb
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\bin\Debug\Newtonsoft.Json.dll
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\bin\Debug\Newtonsoft.Json.xml
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.Form1.resources
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.Properties.Resources.resources
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.csproj.GenerateResource.cache
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.csproj.Up2Date
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.exe
+C:\Users\User\Desktop\Programm\NET_Framework\Weather(專題)\Weather\obj\Debug\Weather.pdb

@@ -22,7 +22,7 @@ namespace Weather
             this.Load += Form1_Load;
             debounceTimer = new System.Windows.Forms.Timer();
             debounceTimer.Interval = debounceInterval;
-            debounceTimer.Tick += DebounceTimer_Tick;
+            //debounceTimer.Tick += DebounceTimer_Tick;
 
         }
         private Point mouseDownLocation;
