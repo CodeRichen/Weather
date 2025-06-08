@@ -62,15 +62,18 @@ namespace Weather
            
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox5.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.MouseDown += PictureBox_MouseDown;
             pictureBox3.MouseMove += PictureBox_MouseMove;
             pictureBox3.MouseUp += PictureBox_MouseUp;
             pictureBox3.Parent = pictureBox1; // 地圖當父容器
-            pictureBox4.Parent = pictureBox1; // 地圖當父容器
+            pictureBox4.Parent = pictureBox1; 
+            pictureBox5.Parent = pictureBox1; 
+            pictureBox5.BackColor = Color.Transparent;
             pictureBox3.BackColor = Color.Transparent;
             pictureBox4.BackColor = Color.Transparent;
-
+            
             pictureBox4.MouseDown += PictureBox_MouseDown;
             pictureBox4.MouseMove += PictureBox_MouseMove;
             pictureBox4.MouseUp += PictureBox_MouseUp;
@@ -89,6 +92,7 @@ namespace Weather
             pictureBox1.MouseEnter += (s, ev) => pictureBox1.Focus();
             pictureBox3.Visible = false;
             pictureBox4.Visible = false;
+            pictureBox5.Visible = false;
         }
         private bool isMapInteractive = true;
 
@@ -298,9 +302,7 @@ namespace Weather
 
                     if (string.IsNullOrEmpty(enExtract)) return "找不到該城市的簡介資料。";
 
-                    // 使用簡單的 DeepL 或 OpenAI 翻譯（此處用 Google Translate 網址示意）
-                    //string translated = await TranslateToChinese(enExtract);
-                    //return translated;
+               
                     return enExtract;
                 }
                 catch (Exception ex)
@@ -398,6 +400,7 @@ namespace Weather
                 currentPictureBox = null;
             }
         }
+
         private double Distance(double lat1, double lon1, double lat2, double lon2)
         {
             double R = 6371; // 地球半徑，單位：公里
@@ -410,13 +413,13 @@ namespace Weather
             return R * c;
         }
 
-        private PointF MapToPoint(double lat, double lon)
-        {
 
-            float x = (float)((lon + 179) / 360 * pictureBox1.Width);
-            float y = (float)((90.5 - lat) / 180 * pictureBox1.Height);
- 
-            return new PointF(x, y);
+        private Point MapToPoint(double lat, double lon)
+        {
+            int x = (int)((lon + 179) / 360 * pictureBox1.Width) + pictureBox1.Left;
+            int y = (int)((90.5 - lat) / 180 * pictureBox1.Height) + pictureBox1.Top;
+
+            return new Point(x, y);
         }
 
 
@@ -498,7 +501,7 @@ namespace Weather
         }
 
 
-        private void button2_Click(object sender, EventArgs e)
+        private async void button2_Click(object sender, EventArgs e)
         {
             var (city, countryCode) = cityList[rand.Next(cityList.Count)];
             if (!player1Pos.HasValue || !player2Pos.HasValue || !answerPos.HasValue)
@@ -506,18 +509,28 @@ namespace Weather
                 MessageBox.Show("兩位玩家都要先選好地點！");
                 return;
             }
+            if (answerPos.HasValue)
+            {
+                pictureBox5.Visible = true;
+                Point pt = MapToPoint(answerPos.Value.lat, answerPos.Value.lon);
+                pt.Offset(-pictureBox5.Width / 2, -pictureBox5.Height); // 底部中間對準
+
+                pictureBox5.Location = pt;
+            }
+
+            string anssummary = await GetCitySummaryAsync("", city);
 
             // 計算距離
             double d1 = Distance(player1Pos.Value.lat, player1Pos.Value.lon, answerPos.Value.lat, answerPos.Value.lon);
             double d2 = Distance(player2Pos.Value.lat, player2Pos.Value.lon, answerPos.Value.lat, answerPos.Value.lon);
 
-            string winner = d1 < d2 ? "玩家 1 獲勝！" : (d2 < d1 ? "玩家 2 獲勝！" : "平手！");
-            textBox1.Text = $"答案是：{city}\r\n玩家 1 距離：{d1:F2} km\r\n玩家 2 距離：{d2:F2} km\r\n{winner}";
-
+            string winner = d1 < d2 ? "玩家 Red 獲勝！" : (d2 < d1 ? "玩家 Blue 獲勝！" : "平手！");
+            label1.Text = $"答案是：{city}\r\n玩家 Red 距離：{d1:F2} km\r\n玩家 Blue 距離：{d2:F2} km\r\n{winner}";
+            textBox1.Text = $"答案介紹:{anssummary}";
             // 在地圖上畫線
             Graphics g = pictureBox1.CreateGraphics();
-            Pen pen1 = new Pen(Color.Blue, 2);
-            Pen pen2 = new Pen(Color.Red, 2);
+            Pen pen1 = new Pen(Color.Red, 4);
+            Pen pen2 = new Pen(Color.Blue, 4);
 
             PointF answerPoint = MapToPoint(answerPos.Value.lat, answerPos.Value.lon);
             PointF p1Point = MapToPoint(player1Pos.Value.lat, player1Pos.Value.lon);
@@ -527,12 +540,14 @@ namespace Weather
             g.DrawLine(pen2, p2Point, answerPoint);
 
             // 結束遊戲
-
+            await Task.Delay(5000);
             pictureBox3.Visible = false;
             pictureBox4.Visible = false;
+            pictureBox5.Visible = false;
             isMapInteractive = true;
-            label2.Text = "Player1";
-            label3.Text = "Player2";
+            label2.Text = "PlayerRed";
+            label3.Text = "PlayerBlue";
+            pictureBox1.Invalidate();
         }
 
         private async Task<string> GetCountryNameFromCode(string code)

@@ -3,11 +3,11 @@
   "WorkspaceRootPath": "C:\\Users\\User\\Desktop\\Programm\\NET_Framework\\Weather(\u5C08\u984C)\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|C:\\Users\\User\\Desktop\\Programm\\NET_Framework\\Weather(\u5C08\u984C)\\weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|c:\\users\\user\\desktop\\programm\\net_framework\\weather(\u5C08\u984C)\\weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|solutionrelative:weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|c:\\users\\user\\desktop\\programm\\net_framework\\weather(\u5C08\u984C)\\weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|C:\\Users\\User\\Desktop\\Programm\\NET_Framework\\Weather(\u5C08\u984C)\\weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{AB804C1B-007E-48E4-BE5E-CF6E7C0E47D6}|Weather\\Weather.csproj|solutionrelative:weather\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
@@ -52,7 +52,7 @@
               "RelativeDocumentMoniker": "Weather\\Form1.cs",
               "ToolTip": "C:\\Users\\User\\Desktop\\Programm\\NET_Framework\\Weather(\u5C08\u984C)\\Weather\\Form1.cs",
               "RelativeToolTip": "Weather\\Form1.cs",
-              "ViewState": "AgIAAAUCAAAAAAAAAAAIwBYCAAASAAAAAAAAAA==",
+              "ViewState": "AgIAAD4AAAAAAAAAAAAzwEoAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-08T13:31:38.423Z",
               "EditorCaption": ""
