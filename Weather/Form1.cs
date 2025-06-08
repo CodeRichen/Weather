@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Net;
+using System.Xml.Linq;
 
 
 namespace Weather
@@ -23,7 +24,8 @@ namespace Weather
             this.Load += Form1_Load;
             LoadCitiesFromFile("cities1000.txt");
         }
-
+        private Dictionary<(string, string), (double lat, double lon)> cityCoords =
+    new Dictionary<(string, string), (double, double)>();
         private Point mouseDownLocation;
         private bool isDragging = false;
         private void LoadCitiesFromFile(string filePath)
@@ -39,6 +41,9 @@ namespace Weather
                         string city = parts[1];
                         string countryCode = parts[8];
                         cityList.Add((city, countryCode));
+                        double lat = double.Parse(parts[4]);
+                        double lon = double.Parse(parts[5]);
+                        cityCoords[(city, countryCode)] = (lat, lon);
                     }
                 }
             }
@@ -54,22 +59,32 @@ namespace Weather
             this.AutoScroll = false;
 
             pictureBox1.Image = Image.FromFile("world_map.jpg");
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+           
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox3.MouseDown += PictureBox_MouseDown;
+            pictureBox3.MouseMove += PictureBox_MouseMove;
+            pictureBox3.MouseUp += PictureBox_MouseUp;
+
+            pictureBox4.MouseDown += PictureBox_MouseDown;
+            pictureBox4.MouseMove += PictureBox_MouseMove;
+            pictureBox4.MouseUp += PictureBox_MouseUp;
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.Dock = DockStyle.None;
             pictureBox1.Width = 1000;
             pictureBox1.Height = 600;
             pictureBox1.Left = 100;
             pictureBox1.Top = 100;
-
             pictureBox1.MouseWheel += PictureBox1_MouseWheel;
             pictureBox1.MouseDown += PictureBox1_MouseDown;
             pictureBox1.MouseMove += PictureBox1_MouseMove;
             pictureBox1.MouseUp += PictureBox1_MouseUp;
             pictureBox1.MouseClick += pictureBox1_MouseClick;
-
             pictureBox1.Focus();
             pictureBox1.MouseEnter += (s, ev) => pictureBox1.Focus();
+            pictureBox3.Visible = false;
+            pictureBox4.Visible = false;
         }
 
         private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -305,15 +320,124 @@ namespace Weather
             }
         }
 
-        private (double lat, double lon)? player1Coords = null;
-        private (double lat, double lon)? player2Coords = null;
-        private int currentPlayer = 1; // 玩家1先點
+        private bool isDragging2 = false;
+        private Point clickOffset;
+        private PictureBox currentPictureBox = null;
 
+
+        private void PictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isDragging2 = true;
+                currentPictureBox = sender as PictureBox;
+                clickOffset = e.Location;
+            }
+        }
+
+        private void PictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging2 && currentPictureBox != null)
+            {
+                Point newLocation = currentPictureBox.Location;
+                newLocation.X += e.X - clickOffset.X;
+                newLocation.Y += e.Y - clickOffset.Y;
+                currentPictureBox.Location = newLocation;
+            }
+        }
+        private (double lat, double lon)? player1Pos = null;
+        private (double lat, double lon)? player2Pos = null;
+
+        private void PictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && currentPictureBox != null)
+            {
+                isDragging2 = false;
+
+                // 計算 PictureBox 的中心點（相對於地圖 pictureBox1）
+                Point center = new Point(
+                    currentPictureBox.Left + currentPictureBox.Width / 2,
+                    currentPictureBox.Top + currentPictureBox.Height / 2
+                );
+
+                // 判斷是否在地圖 pictureBox1 的範圍內
+                Rectangle mapRect = new Rectangle(pictureBox1.Location, pictureBox1.Size);
+                if (mapRect.Contains(center))
+                {
+                    // 計算相對位置
+                    int relativeX = center.X - pictureBox1.Left;
+                    int relativeY = center.Y - pictureBox1.Top;
+
+                    double lon = (relativeX / (double)pictureBox1.Width) * 360 - 179;
+                    double lat = 90.5 - (relativeY / (double)pictureBox1.Height) * 180;
+                    //double lon = (center.X / (double)pictureBox1.Width) * 360 - 179;
+                    //double lat = 90.5 - (center.Y / (double)pictureBox1.Height) * 180;
+
+                    if (sender == pictureBox3)
+                    {
+                        player1Pos = (lat, lon);
+                        label2.Text = $"玩家 1：Lat {lat:F1}, Lon {lon:F1}";
+                    }
+                    else if (sender == pictureBox4)
+                    {
+                        player2Pos = (lat, lon);
+                     
+                        label3.Text = $"玩家 2：Lat {lat:F1}, Lon {lon:F1}";
+
+                    }
+
+                }
+                //else
+                //{
+                //    label1.Text = "請把標記放在地圖上～";
+                //}
+
+                currentPictureBox = null;
+            }
+        }
+        private double Distance(double lat1, double lon1, double lat2, double lon2)
+        {
+            double R = 6371; // 地球半徑，單位：公里
+            double dLat = (lat2 - lat1) * Math.PI / 180;
+            double dLon = (lon2 - lon1) * Math.PI / 180;
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                       Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+        private PointF MapToPoint(double lat, double lon)
+        {
+
+            float x = (float)((lon + 179) / 360 * pictureBox1.Width);
+            float y = (float)((90.5 - lat) / 180 * pictureBox1.Height);
+ 
+            return new PointF(x, y);
+        }
+
+
+        private int currentPlayer = 1; // 玩家1先點
+        bool isGameActive;
+        private (double lat, double lon)? answerPos = null; // 加在 class 裡
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            //TODO:按一下這個開始遊戲 先把地圖 變成預設載入的大小 鎖定地圖讓他不能夠改大小
-            //TODO:2個使用者可以拖曳某個物品到地圖上面 
+            pictureBox1.Dock = DockStyle.None;
+            pictureBox1.Width = 1000;
+            pictureBox1.Height = 600;
+            pictureBox1.Left = 100;
+            pictureBox1.Top = 100;
+            pictureBox1.MouseWheel -= PictureBox1_MouseWheel;
+            pictureBox1.MouseDown -= PictureBox1_MouseDown;
+            pictureBox1.MouseMove -= PictureBox1_MouseMove;
+            pictureBox1.MouseUp -= PictureBox1_MouseUp;
+            pictureBox1.MouseClick -= pictureBox1_MouseClick;
+
+            pictureBox3.Visible = true;
+            pictureBox4.Visible = true;
+            pictureBox3.Location = new Point(13, 460);
+            pictureBox4.Location = new Point(13, 580);
             if (cityList.Count == 0)
             {
                 MessageBox.Show("城市清單為空！");
@@ -328,6 +452,28 @@ namespace Weather
                 return;
             }
 
+            label1.Text = $"請找出圖片所在城市";
+            textBox1.Clear();
+
+            // 取得經緯度
+            if (cityCoords.TryGetValue((city, countryCode), out var coords))
+            {
+                answerPos = coords;
+            }
+            else
+            {
+                MessageBox.Show("無法找到該城市的經緯度！");
+                return;
+            }
+
+            // 清除舊的線與資訊
+            pictureBox1.Invalidate();
+            player1Pos = null;
+            player2Pos = null;
+            //label2.Text = "玩家 1：尚未選擇";
+            //label3.Text = "玩家 2：尚未選擇";
+
+            // 抓圖片
             string imageUrl = await GetImageFromUnsplash(countryName);
             if (imageUrl != null)
             {
@@ -339,7 +485,6 @@ namespace Weather
                     {
                         pictureBox2.Image = System.Drawing.Image.FromStream(stream);
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -350,12 +495,50 @@ namespace Weather
             {
                 MessageBox.Show("找不到圖片！");
             }
+
+            isGameActive = true;
         }
+
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //TODO:按下這個就可以 對答案 把兩位使用者選的地點和 正確答案的地點標示出來 誰比較接近誰就獲勝畫出 正確的點到2個地點的線 
+            var (city, countryCode) = cityList[rand.Next(cityList.Count)];
+            if (!player1Pos.HasValue || !player2Pos.HasValue || !answerPos.HasValue)
+            {
+                MessageBox.Show("兩位玩家都要先選好地點！");
+                return;
+            }
+
+            // 計算距離
+            double d1 = Distance(player1Pos.Value.lat, player1Pos.Value.lon, answerPos.Value.lat, answerPos.Value.lon);
+            double d2 = Distance(player2Pos.Value.lat, player2Pos.Value.lon, answerPos.Value.lat, answerPos.Value.lon);
+
+            string winner = d1 < d2 ? "玩家 1 獲勝！" : (d2 < d1 ? "玩家 2 獲勝！" : "平手！");
+            textBox1.Text = $"答案是：{city}\r\n玩家 1 距離：{d1:F2} km\r\n玩家 2 距離：{d2:F2} km\r\n{winner}";
+
+            // 在地圖上畫線
+            Graphics g = pictureBox1.CreateGraphics();
+            Pen pen1 = new Pen(Color.Blue, 2);
+            Pen pen2 = new Pen(Color.Red, 2);
+
+            PointF answerPoint = MapToPoint(answerPos.Value.lat, answerPos.Value.lon);
+            PointF p1Point = MapToPoint(player1Pos.Value.lat, player1Pos.Value.lon);
+            PointF p2Point = MapToPoint(player2Pos.Value.lat, player2Pos.Value.lon);
+
+            g.DrawLine(pen1, p1Point, answerPoint);
+            g.DrawLine(pen2, p2Point, answerPoint);
+
+            // 結束遊戲
+            isGameActive = false;
+            pictureBox3.Visible = false;
+            pictureBox4.Visible = false;
+            pictureBox1.MouseWheel += PictureBox1_MouseWheel;
+            pictureBox1.MouseDown += PictureBox1_MouseDown;
+            pictureBox1.MouseMove += PictureBox1_MouseMove;
+            pictureBox1.MouseUp += PictureBox1_MouseUp;
+            pictureBox1.MouseClick += pictureBox1_MouseClick;
         }
+
         private async Task<string> GetCountryNameFromCode(string code)
         {
             string url = $"https://restcountries.com/v3.1/alpha/{code}";
