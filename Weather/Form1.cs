@@ -66,6 +66,10 @@ namespace Weather
             pictureBox3.MouseDown += PictureBox_MouseDown;
             pictureBox3.MouseMove += PictureBox_MouseMove;
             pictureBox3.MouseUp += PictureBox_MouseUp;
+            pictureBox3.Parent = pictureBox1; // 地圖當父容器
+            pictureBox4.Parent = pictureBox1; // 地圖當父容器
+            pictureBox3.BackColor = Color.Transparent;
+            pictureBox4.BackColor = Color.Transparent;
 
             pictureBox4.MouseDown += PictureBox_MouseDown;
             pictureBox4.MouseMove += PictureBox_MouseMove;
@@ -86,9 +90,11 @@ namespace Weather
             pictureBox3.Visible = false;
             pictureBox4.Visible = false;
         }
+        private bool isMapInteractive = true;
 
         private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
+            if (!isMapInteractive) return;
             if (e.Button == MouseButtons.Left)
             {
                 isDragging = true;
@@ -98,11 +104,13 @@ namespace Weather
 
         private void PictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
+            if (!isMapInteractive) return;
             isDragging = false;
         }
 
         private void PictureBox1_MouseMove(object sender, MouseEventArgs e) //拖曳移動功能
         {
+            if (!isMapInteractive) return;
             if (isDragging)
             {
                 pictureBox1.Left += e.X - mouseDownLocation.X; //mouseDownLocation 是記錄滑鼠按下時的相對座標。   
@@ -111,11 +119,13 @@ namespace Weather
         }
         private void pictureBox1_MouseEnter(object sender, EventArgs e)
         {
+            if (!isMapInteractive) return;
             pictureBox1.Focus();
         }
 
         private void PictureBox1_MouseWheel(object sender, MouseEventArgs e)
         {
+            if (!isMapInteractive) return;
             if (Control.ModifierKeys.HasFlag(Keys.Control))
 
             {
@@ -156,6 +166,7 @@ namespace Weather
 
         private async void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
+            if (!isMapInteractive) return;
             double lon = (e.X / (double)pictureBox1.Width) * 360 - 179;
             double lat = 90.5 - (e.Y / (double)pictureBox1.Height) * 180;
 
@@ -353,25 +364,21 @@ namespace Weather
             if (e.Button == MouseButtons.Left && currentPictureBox != null)
             {
                 isDragging2 = false;
+                // 底部中心（Y 改為 Height）
+                Point screenBottomCenter = currentPictureBox.PointToScreen(new Point(currentPictureBox.Width / 2, currentPictureBox.Height));
 
-                // 計算 PictureBox 的中心點（相對於地圖 pictureBox1）
-                Point center = new Point(
-                    currentPictureBox.Left + currentPictureBox.Width / 2,
-                    currentPictureBox.Top + currentPictureBox.Height / 2
-                );
+                // 再轉回相對 pictureBox1.Parent（通常是 panel1）座標
+                Point relativeBottomCenter = pictureBox1.Parent.PointToClient(screenBottomCenter);
 
-                // 判斷是否在地圖 pictureBox1 的範圍內
+                // 判斷是否在 pictureBox1 範圍內
                 Rectangle mapRect = new Rectangle(pictureBox1.Location, pictureBox1.Size);
-                if (mapRect.Contains(center))
+                if (mapRect.Contains(relativeBottomCenter))
                 {
-                    // 計算相對位置
-                    int relativeX = center.X - pictureBox1.Left;
-                    int relativeY = center.Y - pictureBox1.Top;
+                    int relativeX = relativeBottomCenter.X - pictureBox1.Left;
+                    int relativeY = relativeBottomCenter.Y - pictureBox1.Top;
 
                     double lon = (relativeX / (double)pictureBox1.Width) * 360 - 179;
                     double lat = 90.5 - (relativeY / (double)pictureBox1.Height) * 180;
-                    //double lon = (center.X / (double)pictureBox1.Width) * 360 - 179;
-                    //double lat = 90.5 - (center.Y / (double)pictureBox1.Height) * 180;
 
                     if (sender == pictureBox3)
                     {
@@ -387,11 +394,7 @@ namespace Weather
                     }
 
                 }
-                //else
-                //{
-                //    label1.Text = "請把標記放在地圖上～";
-                //}
-
+           
                 currentPictureBox = null;
             }
         }
@@ -417,8 +420,8 @@ namespace Weather
         }
 
 
-        private int currentPlayer = 1; // 玩家1先點
-        bool isGameActive;
+
+
         private (double lat, double lon)? answerPos = null; // 加在 class 裡
 
         private async void button1_Click(object sender, EventArgs e)
@@ -428,16 +431,12 @@ namespace Weather
             pictureBox1.Height = 600;
             pictureBox1.Left = 100;
             pictureBox1.Top = 100;
-            pictureBox1.MouseWheel -= PictureBox1_MouseWheel;
-            pictureBox1.MouseDown -= PictureBox1_MouseDown;
-            pictureBox1.MouseMove -= PictureBox1_MouseMove;
-            pictureBox1.MouseUp -= PictureBox1_MouseUp;
-            pictureBox1.MouseClick -= pictureBox1_MouseClick;
+            isMapInteractive = false;
 
             pictureBox3.Visible = true;
             pictureBox4.Visible = true;
-            pictureBox3.Location = new Point(13, 460);
-            pictureBox4.Location = new Point(13, 580);
+            pictureBox3.Location = new Point(26, 13);
+            pictureBox4.Location = new Point(26, 134);
             if (cityList.Count == 0)
             {
                 MessageBox.Show("城市清單為空！");
@@ -452,7 +451,7 @@ namespace Weather
                 return;
             }
 
-            label1.Text = $"請找出圖片所在城市";
+            label1.Text = $"請找出右圖所在城市:";
             textBox1.Clear();
 
             // 取得經緯度
@@ -470,8 +469,7 @@ namespace Weather
             pictureBox1.Invalidate();
             player1Pos = null;
             player2Pos = null;
-            //label2.Text = "玩家 1：尚未選擇";
-            //label3.Text = "玩家 2：尚未選擇";
+
 
             // 抓圖片
             string imageUrl = await GetImageFromUnsplash(countryName);
@@ -496,7 +494,7 @@ namespace Weather
                 MessageBox.Show("找不到圖片！");
             }
 
-            isGameActive = true;
+
         }
 
 
@@ -529,14 +527,12 @@ namespace Weather
             g.DrawLine(pen2, p2Point, answerPoint);
 
             // 結束遊戲
-            isGameActive = false;
+
             pictureBox3.Visible = false;
             pictureBox4.Visible = false;
-            pictureBox1.MouseWheel += PictureBox1_MouseWheel;
-            pictureBox1.MouseDown += PictureBox1_MouseDown;
-            pictureBox1.MouseMove += PictureBox1_MouseMove;
-            pictureBox1.MouseUp += PictureBox1_MouseUp;
-            pictureBox1.MouseClick += pictureBox1_MouseClick;
+            isMapInteractive = true;
+            label2.Text = "Player1";
+            label3.Text = "Player2";
         }
 
         private async Task<string> GetCountryNameFromCode(string code)
